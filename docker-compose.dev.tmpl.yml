@@ -1,0 +1,60 @@
+#
+# Source code address
+# https://hub.docker.com/u/cuongtransc/
+#
+# Syntax: https://docs.docker.com/compose/compose-file/
+#
+version: '2'
+
+services:
+    db:
+        image: postgres:9.6-alpine
+        volumes:
+            - ./postgres-data/:/var/lib/postgresql/data/
+            - ./postgres-initdb.d/:/docker-entrypoint-initdb.d/
+        environment:
+            - POSTGRES_USER=saleor
+            - POSTGRES_PASSWORD=saleor
+        ports:
+            - '127.0.0.1:5432:5432'
+
+    redis:
+        image: redis:4.0-alpine
+        # volumes:
+        #     - ./redis-data/:/data/
+        # ports:
+        #     - '127.0.0.1:6379:6379'
+
+    search:
+        image: elasticsearch:5.5-alpine
+        volumes:
+            #- ./elasticsearch-config:/usr/share/elasticsearch/config
+            - ./elasticsearch-data:/usr/share/elasticsearch/data
+        ports:
+            - '127.0.0.1:9200:9200'
+
+    web:
+        build: .
+        command: python manage.py runserver 0.0.0.0:8000
+        environment:
+            - DATABASE_URL=postgres://saleor:saleor@db/saleor
+            - DEFAULT_FROM_EMAIL=noreply@sero.ai
+            - ELASTICSEARCH_URL=http://search:9200
+            - OPENEXCHANGERATES_API_KEY
+            - REDIS_URL=redis://redis:6379/0
+            - SECRET_KEY=changeme
+        depends_on:
+            - db
+            - redis
+            - search
+        ports:
+            - '8000:8000'
+        volumes:
+            - .:/app:Z
+
+    node:
+        #image: node:6.11-alpine
+        image: node:6.11
+        volumes:
+            - .:/app
+        working_dir: /app
