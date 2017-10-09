@@ -26,3 +26,12 @@ dist/
 /static/
 /saleor/static/assets/
 webpack-bundle.json
+
+# Ignore docker-compose custom
+docker-compose.override.yml
+
+# Ignore dev scripts
+README-dev.md
+logs.sh
+shell.sh
+
